@@ -30,7 +30,7 @@
             z-index: -2; 
             cursor: pointer;
             pointer-events: auto;
-            top: 50%; /* 背景保持正中心 */
+            top: 50%;
         }
 
         .content-container {
@@ -58,8 +58,6 @@
             gap: 2px;
             width: auto; 
         }
-
-        /* 初始狀態：隱藏且稍微下偏，準備做階梯動畫 */
         .svg-loader {
             height: auto;
             object-fit: contain;
@@ -174,12 +172,12 @@
             const domA = document.getElementById('container-A');
             const domB = document.getElementById('container-B');
 
-            // --- A 動畫出現 (0.5s 開始依序出現，到 3.0s 結束) ---
+            // --- A 動畫 ---
             if (elapsed >= 500 && elapsed < 3000) {
                 domA.classList.add('active');
                 domB.classList.remove('active');
             } 
-            // --- B 動畫出現 (3.0s ~ 4.8s) ---
+            // --- B 動畫 ---
             else if (elapsed >= 3000 && elapsed < 4800) {
                 if (!domB.classList.contains('active') && activeData.length > 0) {
                     const data = activeData[currentIndex];
@@ -202,4 +200,5 @@
         init();
     </script>
 </body>
+
 </html>
