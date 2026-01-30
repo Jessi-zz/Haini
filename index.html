@@ -104,7 +104,7 @@
 
         .active { opacity: 1 !important; }
         
-        #debug-info { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 8px; font-family: monospace; z-index: 100; font-size: 12px; }
+        /* #debug-info { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 8px; font-family: monospace; z-index: 100; font-size: 12px; } */
     </style>
 </head>
 <body>
@@ -124,7 +124,7 @@
         <div id="text-box"></div>
     </div>
 
-    <div id="debug-info">載入中...</div>
+    <!-- <div id="debug-info">載入中...</div> -->
 
     <script>
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRq0j1VfAvRp-MjjD9RZjdYuKERhfR17A9a8hwTpF18D97GFG3fyiQAW9lKtjhD-ZX5glDLzDkX47GA/pub?output=csv';
@@ -167,7 +167,7 @@
         function update(now) {
             const elapsed = (now - startTime) % CYCLE;
             const sec = (elapsed / 1000).toFixed(2);
-            document.getElementById('debug-info').innerText = `同步中: ${sec}s`;
+            // document.getElementById('debug-info').innerText = `同步中: ${sec}s`;
 
             const domA = document.getElementById('container-A');
             const domB = document.getElementById('container-B');
@@ -202,3 +202,4 @@
 </body>
 
 </html>
+
