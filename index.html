@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>Haini Sync Animation - Advanced</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:ital,wght@0,100..900;1,100..900&family=LINE+Seed+JP&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        :root { --brand-color: #3e62e6; }
+        body, html { 
+            margin: 0; padding: 0; 
+            width: 752px; height: 242px; 
+            overflow: hidden; 
+            font-family: "Microsoft JhengHei", sans-serif; 
+            background-color: transparent; 
+        }
+
+        .absolute-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        #bg-apng { 
+            width: 752px; height: 242px; 
+            z-index: -2; 
+            cursor: pointer;
+            pointer-events: auto;
+            top: 50%; /* 背景保持正中心 */
+        }
+
+        .content-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.5s ease-out;
+        }
+
+        /* A 動畫區域 */
+        #container-A {
+            width: auto;
+            height: 80px;
+            gap: 15px; 
+            align-items: flex-end;
+            transform: translate(-50%, calc(-50% - 10px)) 
+        }
+
+        .a2-a3-wrapper {
+            display: flex;
+            flex-direction: column; 
+            align-items: flex-end; 
+            justify-content: flex-end; 
+            gap: 2px;
+            width: auto; 
+        }
+
+        /* 初始狀態：隱藏且稍微下偏，準備做階梯動畫 */
+        .svg-loader {
+            height: auto;
+            object-fit: contain;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        }
+
+        /* 當容器 active 時，各元素依序顯示的樣式 */
+        #container-A.active #img-a1 { opacity: 1; transform: translateY(0); transition-delay: 0s; }
+        #container-A.active #img-a2 { opacity: 1; transform: translateY(0); transition-delay: 0.2s; }
+        #container-A.active #img-a3 { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+
+        #img-a1 { width: 140px; }
+        #img-a2 { width: 155px; }
+        #img-a3 { width: 95px; margin-bottom: 5px; }
+
+        /* B 動畫區域 (3~5s) */
+        #container-B {
+            width: 100%;
+            gap: 12px;
+            transform: translate(-50%, calc(-50% -25px));
+            padding-bottom: 10px;
+        }
+        #icon-box {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+        #icon-box svg { width: 100%; height: 100%; fill: var(--brand-color); }
+        #text-box {
+            font-size: 48px;
+            font-family: "Advent Pro", "LINE Seed JP", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: 700;
+            font-style: normal;
+            font-variation-settings:
+                "wdth" 100;
+            color: var(--brand-color);
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        .active { opacity: 1 !important; }
+        
+        #debug-info { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #00ff00; padding: 8px; font-family: monospace; z-index: 100; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <img id="bg-apng" class="absolute-center" src="BG.png" onclick="resetSync()">
+
+    <div id="container-A" class="absolute-center content-container">
+        <img id="img-a1" class="svg-loader" src="A-1.svg">
+        <div class="a2-a3-wrapper">
+            <img id="img-a3" class="svg-loader" src="A-3.svg">
+            <img id="img-a2" class="svg-loader" src="A-2.svg">
+        </div>
+    </div>
+
+    <div id="container-B" class="absolute-center content-container">
+        <div id="icon-box"></div>
+        <div id="text-box"></div>
+    </div>
+
+    <div id="debug-info">載入中...</div>
+
+    <script>
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRq0j1VfAvRp-MjjD9RZjdYuKERhfR17A9a8hwTpF18D97GFG3fyiQAW9lKtjhD-ZX5glDLzDkX47GA/pub?output=csv';
+        let activeData = [];
+        let currentIndex = 0;
+        let startTime = performance.now();
+        const CYCLE = 5000;
+
+        async function init() {
+            try {
+                await new Promise((resolve) => {
+                    Papa.parse(SHEET_URL, {
+                        download: true,
+                        complete: (results) => {
+                            activeData = results.data.slice(1).map(cols => ({
+                                enabled: cols[0]?.trim().toUpperCase() === 'TRUE',
+                                svg: cols[2] || '',
+                                text: cols[3] || ''
+                            })).filter(item => item.enabled);
+                            resolve();
+                        }
+                    });
+                });
+                resetSync();
+                requestAnimationFrame(update);
+            } catch (e) { document.getElementById('debug-info').innerText = "連線失敗"; }
+        }
+
+        function resetSync() {
+            startTime = performance.now();
+            const img = document.getElementById('bg-apng');
+            const src = img.src;
+            img.src = ''; img.src = src;
+            document.querySelectorAll('.svg-loader').forEach(s => {
+                const s_src = s.src;
+                s.src = ''; s.src = s_src;
+            });
+        }
+
+        function update(now) {
+            const elapsed = (now - startTime) % CYCLE;
+            const sec = (elapsed / 1000).toFixed(2);
+            document.getElementById('debug-info').innerText = `同步中: ${sec}s`;
+
+            const domA = document.getElementById('container-A');
+            const domB = document.getElementById('container-B');
+
+            // --- A 動畫出現 (0.5s 開始依序出現，到 3.0s 結束) ---
+            if (elapsed >= 500 && elapsed < 3000) {
+                domA.classList.add('active');
+                domB.classList.remove('active');
+            } 
+            // --- B 動畫出現 (3.0s ~ 4.8s) ---
+            else if (elapsed >= 3000 && elapsed < 4800) {
+                if (!domB.classList.contains('active') && activeData.length > 0) {
+                    const data = activeData[currentIndex];
+                    document.getElementById('icon-box').innerHTML = data.svg;
+                    document.getElementById('text-box').innerText = data.text;
+                    domB.classList.add('active');
+                    domA.classList.remove('active');
+                }
+            } 
+            else {
+                if (domB.classList.contains('active')) {
+                    domB.classList.remove('active');
+                    currentIndex = (currentIndex + 1) % activeData.length;
+                }
+                domA.classList.remove('active');
+            }
+            requestAnimationFrame(update);
+        }
+
+        init();
+    </script>
+</body>
+</html>
