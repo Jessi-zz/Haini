@@ -150,7 +150,9 @@
                 });
                 resetSync();
                 requestAnimationFrame(update);
-            } catch (e) { document.getElementById('debug-info').innerText = "連線失敗"; }
+            } catch (e) { 
+                // document.getElementById('debug-info').innerText = "連線失敗"; 
+            }
         }
 
         function resetSync() {
@@ -202,4 +204,5 @@
 </body>
 
 </html>
+
 
